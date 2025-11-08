@@ -186,14 +186,7 @@ def extract_wells_with_net_diff_bo(file_content):
             if col in final_df.columns and final_df[col].dtype in [np.float64, np.int64]:
                 final_df[col] = final_df[col].round(2)
         
-        # Add total rows for both ALL wells and non-zero wells
-        total_row_non_zero = pd.DataFrame([{
-            field_col: 'TOTAL (Non-Zero Wells)',
-            well_name_col: f'{well_count_non_zero} Wells with Non-Zero Net Diff BO',
-            net_bo_col: total_net_bo_non_zero,
-            net_diff_bo_col: total_net_diff_bo_non_zero
-        }])
-        
+        # Add TOTAL (All Wells) row with net bo and net diff bo
         total_row_all = pd.DataFrame([{
             field_col: 'TOTAL (All Wells)',
             well_name_col: f'{all_wells_count} Total Wells',
@@ -201,8 +194,8 @@ def extract_wells_with_net_diff_bo(file_content):
             net_diff_bo_col: total_net_diff_bo_all
         }])
         
-        # Combine main data with total rows
-        final_df = pd.concat([final_df, total_row_non_zero, total_row_all], ignore_index=True)
+        # Combine main data with total row
+        final_df = pd.concat([final_df, total_row_all], ignore_index=True)
         
         st.success(f"✅ Successfully extracted {well_count_non_zero} wells with non-zero Net Diff BO values")
         
@@ -216,7 +209,7 @@ def extract_wells_with_net_diff_bo(file_content):
 
 def create_visualizations(data_without_total, original_columns, all_wells_data):
     """
-    Create simplified statistical visualizations
+    Create simplified statistical visualizations with only three charts
     """
     try:
         # Check if we have valid data for visualizations
@@ -268,8 +261,8 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
             st.warning("No finite values available for visualization")
             return None
         
-        # Create simplified subplots - 2 rows, 2 columns
-        fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+        # Create simplified subplots - 1 row, 3 columns for better layout
+        fig, axes = plt.subplots(1, 3, figsize=(18, 6))
         fig.suptitle('Production Analysis Dashboard', fontsize=16, fontweight='bold')
         
         # 1. Net Diff BO by Well (Non-Zero Wells - Top 15)
@@ -282,24 +275,24 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
             display_wells = display_data['well_name']
             display_net_diff = display_data['net_diff_bo']
             
-            bars = axes[0, 0].bar(range(len(display_wells)), display_net_diff, 
-                                 color=['lightgreen' if x >= 0 else 'lightcoral' for x in display_net_diff],
-                                 alpha=0.7)
-            axes[0, 0].set_xlabel('Wells')
-            axes[0, 0].set_ylabel('Net Diff BO')
-            axes[0, 0].set_title('Net Diff BO Performance (Top 15 Wells)')
-            axes[0, 0].set_xticks(range(len(display_wells)))
-            axes[0, 0].set_xticklabels(display_wells, rotation=45, ha='right')
-            axes[0, 0].grid(True, alpha=0.3)
+            bars = axes[0].bar(range(len(display_wells)), display_net_diff, 
+                              color=['lightgreen' if x >= 0 else 'lightcoral' for x in display_net_diff],
+                              alpha=0.7)
+            axes[0].set_xlabel('Wells')
+            axes[0].set_ylabel('Net Diff BO')
+            axes[0].set_title('Net Diff BO Performance (Top 15 Wells)')
+            axes[0].set_xticks(range(len(display_wells)))
+            axes[0].set_xticklabels(display_wells, rotation=45, ha='right')
+            axes[0].grid(True, alpha=0.3)
             
             for bar, value in zip(bars, display_net_diff):
                 height = bar.get_height()
-                axes[0, 0].text(bar.get_x() + bar.get_width()/2., height,
-                               f'{value:.1f}', ha='center', va='bottom' if height >= 0 else 'top',
-                               fontsize=8)
+                axes[0].text(bar.get_x() + bar.get_width()/2., height,
+                            f'{value:.1f}', ha='center', va='bottom' if height >= 0 else 'top',
+                            fontsize=8)
         else:
-            axes[0, 0].text(0.5, 0.5, 'No data available', ha='center', va='center', transform=axes[0, 0].transAxes)
-            axes[0, 0].set_title('Net Diff BO Performance')
+            axes[0].text(0.5, 0.5, 'No data available', ha='center', va='center', transform=axes[0].transAxes)
+            axes[0].set_title('Net Diff BO Performance')
         
         # 2. Net BO by Well (Non-Zero Wells - Top 15)
         if len(net_bo_data_non_zero) > 0 and len(well_names_non_zero) > 0:
@@ -311,23 +304,23 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
             display_wells = display_data['well_name']
             display_net_bo = display_data['net_bo']
             
-            bars = axes[0, 1].bar(range(len(display_wells)), display_net_bo, 
-                                 color='skyblue', alpha=0.7)
-            axes[0, 1].set_xlabel('Wells')
-            axes[0, 1].set_ylabel('Net BO')
-            axes[0, 1].set_title('Net BO Production (Top 15 Wells)')
-            axes[0, 1].set_xticks(range(len(display_wells)))
-            axes[0, 1].set_xticklabels(display_wells, rotation=45, ha='right')
-            axes[0, 1].grid(True, alpha=0.3)
+            bars = axes[1].bar(range(len(display_wells)), display_net_bo, 
+                              color='skyblue', alpha=0.7)
+            axes[1].set_xlabel('Wells')
+            axes[1].set_ylabel('Net BO')
+            axes[1].set_title('Net BO Production (Top 15 Wells)')
+            axes[1].set_xticks(range(len(display_wells)))
+            axes[1].set_xticklabels(display_wells, rotation=45, ha='right')
+            axes[1].grid(True, alpha=0.3)
             
             for bar, value in zip(bars, display_net_bo):
                 height = bar.get_height()
-                axes[0, 1].text(bar.get_x() + bar.get_width()/2., height,
-                               f'{value:.0f}', ha='center', va='bottom',
-                               fontsize=8)
+                axes[1].text(bar.get_x() + bar.get_width()/2., height,
+                            f'{value:.0f}', ha='center', va='bottom',
+                            fontsize=8)
         else:
-            axes[0, 1].text(0.5, 0.5, 'No data available', ha='center', va='center', transform=axes[0, 1].transAxes)
-            axes[0, 1].set_title('Net BO Production')
+            axes[1].text(0.5, 0.5, 'No data available', ha='center', va='center', transform=axes[1].transAxes)
+            axes[1].set_title('Net BO Production')
         
         # 3. Top 10 Wells with Highest Net BO (ALL WELLS)
         if len(net_bo_data_all) > 0 and len(well_names_all) > 0:
@@ -338,62 +331,23 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
             }).nlargest(10, 'net_bo')
             
             # Create horizontal bar chart for better readability
-            bars = axes[1, 0].barh(range(len(top_wells_all)), top_wells_all['net_bo'], 
-                                  color='gold', alpha=0.7, edgecolor='darkorange', linewidth=1)
-            axes[1, 0].set_xlabel('Net BO')
-            axes[1, 0].set_ylabel('Wells')
-            axes[1, 0].set_title('Top 10 Highest Producing Wells')
-            axes[1, 0].set_yticks(range(len(top_wells_all)))
-            axes[1, 0].set_yticklabels(top_wells_all['well_name'])
-            axes[1, 0].grid(True, alpha=0.3)
+            bars = axes[2].barh(range(len(top_wells_all)), top_wells_all['net_bo'], 
+                               color='gold', alpha=0.7, edgecolor='darkorange', linewidth=1)
+            axes[2].set_xlabel('Net BO')
+            axes[2].set_ylabel('Wells')
+            axes[2].set_title('Top 10 Highest Producing Wells')
+            axes[2].set_yticks(range(len(top_wells_all)))
+            axes[2].set_yticklabels(top_wells_all['well_name'])
+            axes[2].grid(True, alpha=0.3)
             
             # Add value labels on bars
             for bar, value in zip(bars, top_wells_all['net_bo']):
                 width = bar.get_width()
-                axes[1, 0].text(width + width*0.01, bar.get_y() + bar.get_height()/2.,
-                               f'{value:.0f}', ha='left', va='center', fontsize=9, fontweight='bold')
+                axes[2].text(width + width*0.01, bar.get_y() + bar.get_height()/2.,
+                            f'{value:.0f}', ha='left', va='center', fontsize=9, fontweight='bold')
         else:
-            axes[1, 0].text(0.5, 0.5, 'No data available', ha='center', va='center', transform=axes[1, 0].transAxes)
-            axes[1, 0].set_title('Top 10 Highest Producing Wells')
-        
-        # 4. Performance Overview Pie Chart
-        if len(net_diff_bo_data_non_zero) > 0:
-            # Calculate performance categories
-            excellent = len(net_diff_bo_data_non_zero[net_diff_bo_data_non_zero > 100])
-            good = len(net_diff_bo_data_non_zero[(net_diff_bo_data_non_zero > 0) & (net_diff_bo_data_non_zero <= 100)])
-            poor = len(net_diff_bo_data_non_zero[(net_diff_bo_data_non_zero < 0) & (net_diff_bo_data_non_zero >= -100)])
-            critical = len(net_diff_bo_data_non_zero[net_diff_bo_data_non_zero < -100])
-            
-            categories = ['Excellent (>100)', 'Good (0-100)', 'Poor (-100-0)', 'Critical (<-100)']
-            values = [excellent, good, poor, critical]
-            colors = ['#2ecc71', '#3498db', '#f39c12', '#e74c3c']
-            
-            # Only show categories with values
-            valid_categories = []
-            valid_values = []
-            valid_colors = []
-            
-            for cat, val, col in zip(categories, values, colors):
-                if val > 0:
-                    valid_categories.append(cat)
-                    valid_values.append(val)
-                    valid_colors.append(col)
-            
-            if len(valid_values) > 0:
-                wedges, texts, autotexts = axes[1, 1].pie(valid_values, labels=valid_categories, colors=valid_colors, 
-                                                         autopct='%1.1f%%', startangle=90)
-                axes[1, 1].set_title('Well Performance Distribution')
-                
-                # Improve readability
-                for autotext in autotexts:
-                    autotext.set_color('white')
-                    autotext.set_fontweight('bold')
-            else:
-                axes[1, 1].text(0.5, 0.5, 'No performance data', ha='center', va='center', transform=axes[1, 1].transAxes)
-                axes[1, 1].set_title('Well Performance Distribution')
-        else:
-            axes[1, 1].text(0.5, 0.5, 'No data available', ha='center', va='center', transform=axes[1, 1].transAxes)
-            axes[1, 1].set_title('Well Performance Distribution')
+            axes[2].text(0.5, 0.5, 'No data available', ha='center', va='center', transform=axes[2].transAxes)
+            axes[2].set_title('Top 10 Highest Producing Wells')
         
         plt.tight_layout()
         return fig
@@ -419,7 +373,7 @@ def create_comprehensive_powerpoint(data_df, well_count, stats, original_columns
         subtitle = slide.placeholders[1]
         
         title.text = "Production Analysis Report"
-        subtitle.text = f"Comprehensive Well Performance Analysis\nTotal Wells: {stats['Total All Wells']}\nGenerated on: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}"
+        subtitle.text = f"Comprehensive Well Performance Analysis\nTotal Wells: {stats['Total All Wells']}\nGenerated on: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}\nCreated by: Geol. Hassan Gamal Albery - Geologist @ Norpetco"
         
         # Executive Summary Slide
         slide_layout = prs.slide_layouts[1]
@@ -460,7 +414,7 @@ def create_comprehensive_powerpoint(data_df, well_count, stats, original_columns
         title = slide.shapes.title
         title.text = "Production Data - Key Wells"
         
-        # Create main data table (show only first 15 rows for readability)
+        # Create main data table (show only first 15 rows for readability, including TOTAL row if present)
         display_data = data_df.head(15) if len(data_df) > 15 else data_df
         
         rows = len(display_data) + 1
@@ -536,8 +490,7 @@ def create_comprehensive_powerpoint(data_df, well_count, stats, original_columns
             visualization_titles = [
                 "Net Diff BO Performance",
                 "Net BO Production", 
-                "Top 10 Highest Producing Wells",
-                "Well Performance Distribution"
+                "Top 10 Highest Producing Wells"
             ]
             
             for viz_title in visualization_titles:
@@ -606,7 +559,7 @@ def create_excel_with_visualizations(data_df, stats, visualization_fig):
         excel_buffer = io.BytesIO()
         
         with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
-            # Write main data
+            # Write main data (include TOTAL row)
             data_df.to_excel(writer, sheet_name='Production Data', index=False)
             
             # Write statistics
@@ -668,7 +621,7 @@ def main():
         initial_sidebar_state="expanded"
     )
     
-    # Custom CSS for better styling
+    # Enhanced Custom CSS for better user experience
     st.markdown("""
     <style>
     .main-header {
@@ -676,240 +629,354 @@ def main():
         color: #1f77b4;
         text-align: center;
         margin-bottom: 2rem;
+        font-weight: bold;
     }
     .info-box {
-        background-color: #f0f2f6;
-        padding: 1rem;
+        background-color: #f8f9fa;
+        padding: 1.5rem;
         border-radius: 10px;
         border-left: 5px solid #1f77b4;
         margin: 1rem 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .metric-card {
-        background: white;
-        padding: 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1.5rem;
         border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         text-align: center;
+        color: white;
+        margin: 0.5rem;
+    }
+    .upload-section {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        color: white;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .stButton button {
+        width: 100%;
+        border-radius: 8px;
+        font-weight: bold;
+        padding: 0.5rem 1rem;
+    }
+    .success-box {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    .warning-box {
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    .sidebar-developer {
+        text-align: center;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        color: white;
     }
     </style>
     """, unsafe_allow_html=True)
     
     st.markdown('<h1 class="main-header">🛢️ Production Analysis Dashboard</h1>', unsafe_allow_html=True)
     
-    # Sidebar for navigation and info
+    # Enhanced Sidebar for navigation and info
     with st.sidebar:
-        st.image("https://cdn-icons-png.flaticon.com/512/179/179429.png", width=80)
-        st.title("Navigation")
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <span style="font-size: 3rem;">📊</span>
+            <h2>Production Analytics</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Developer information under sidebar title
+        st.markdown("""
+        <div class="sidebar-developer">
+        <h4>👨‍💻 Developed by</h4>
+        <h3>Geol. Hassan Gamal Albery</h3>
+        <p>Geologist @ Norpetco</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
         st.markdown("---")
         
-        st.subheader("📋 About This App")
+        st.subheader("🚀 Quick Start")
         st.markdown("""
-        This dashboard helps you analyze well production data with focus on:
-        - **Net BO Production**
-        - **Net Diff BO Performance**
-        - **Well Performance Categories**
-        - **Top Performing Wells**
+        1. **Upload** your Excel file
+        2. **Review** automatic analysis
+        3. **Download** reports
         """)
         
         st.markdown("---")
-        st.subheader("🎯 Quick Actions")
-        if st.button("Clear Cache", help="Refresh the application"):
+        st.subheader("📋 Supported Files")
+        st.markdown("""
+        • Excel (.xlsx)
+        • Excel (.xls) 
+        • Macro-enabled (.xlsm)
+        """)
+        
+        st.markdown("---")
+        st.subheader("🛠️ Tools")
+        if st.button("🔄 Clear Cache & Refresh", use_container_width=True):
             st.runtime.legacy_caching.clear_cache()
-            st.success("Cache cleared!")
-        
-        st.markdown("---")
-        st.subheader("📞 Support")
-        st.markdown("""
-        Need help?
-        - Check the instructions below
-        - Ensure your Excel file format is correct
-        - Contact support if issues persist
-        """)
+            st.success("✅ Application refreshed!")
     
-    # Main content area
+    # Main content area with improved layout
     col1, col2 = st.columns([2, 1])
     
     with col1:
         st.markdown("""
         <div class="info-box">
-        <h3>🚀 Get Started</h3>
-        <p>Upload your production Excel file to begin analysis. The app will automatically detect the required columns and generate comprehensive reports.</p>
+        <h3>🎯 What This Dashboard Does</h3>
+        <p>This intelligent dashboard automatically analyzes your production data to provide:</p>
+        <ul>
+        <li><b>Well Performance Insights</b> - Identify top performers and areas for improvement</li>
+        <li><b>Production Trends</b> - Track Net BO and Net Diff BO metrics</li>
+        <li><b>Actionable Reports</b> - Download comprehensive analysis in multiple formats</li>
+        <li><b>Visual Analytics</b> - Clear charts showing key performance indicators</li>
+        </ul>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown("""
         <div class="info-box">
-        <h3>📊 Expected Output</h3>
-        <p>• Data Analysis<br>• Performance Visualizations<br>• Downloadable Reports<br>• Actionable Insights</p>
+        <h3>📈 Key Features</h3>
+        <p>• Automated Data Extraction<br>
+           • Smart Column Detection<br>
+           • Interactive Visualizations<br>
+           • Multi-format Export<br>
+           • Professional Reporting</p>
         </div>
         """, unsafe_allow_html=True)
     
-    # File upload section
+    # Enhanced File upload section
     st.markdown("---")
-    st.header("📁 Upload Production Data")
+    st.markdown('<div class="upload-section"><h2>📁 Upload Your Production Data</h2><p>Drag and drop your Excel file below to start analysis</p></div>', unsafe_allow_html=True)
     
     uploaded_file = st.file_uploader(
         "Choose your production Excel file", 
-        type=['xlsx', 'xls'],
-        help="Upload an Excel file with production data. The app will automatically detect the required columns."
+        type=['xlsx', 'xls', 'xlsm'],
+        help="Upload an Excel file with production data. The app will automatically detect the required columns.",
+        label_visibility="collapsed"
     )
     
     if uploaded_file is not None:
         try:
-            # Progress tracking
-            progress_bar = st.progress(0)
-            status_text = st.empty()
-            
-            status_text.text("🔍 Reading and analyzing file...")
-            progress_bar.progress(25)
-            
-            with st.spinner("Processing your data..."):
+            # Process file without toggle status
+            with st.spinner("🔄 Processing your file... This may take a few moments."):
                 result_df, well_count, stats, original_columns, all_wells_data = extract_wells_with_net_diff_bo(uploaded_file)
-            
-            progress_bar.progress(50)
-            status_text.text("📊 Generating visualizations...")
-            
-            if result_df is not None and not result_df.empty:
-                progress_bar.progress(75)
                 
-                # Success message
-                st.success(f"✅ Analysis complete! Processed {stats['Total All Wells']} total wells and {well_count} wells with significant Net Diff BO values.")
-                
-                # Main results section
-                st.markdown("---")
-                st.header("📈 Analysis Results")
-                
-                # Quick overview in columns
-                col1, col2, col3, col4 = st.columns(4)
-                
-                with col1:
-                    st.metric("Total Wells", stats['Total All Wells'])
-                with col2:
-                    st.metric("Wells with Changes", stats['Total Wells with Non-Zero Net Diff BO'])
-                with col3:
-                    st.metric("Positive Performance", stats['Positive Net Diff BO Wells'])
-                with col4:
-                    st.metric("Needs Attention", stats['Negative Net Diff BO Wells'])
-                
-                # Data preview
-                st.subheader("📋 Production Data Preview")
-                st.dataframe(result_df, use_container_width=True)
-                
-                # Visualizations
-                st.subheader("📊 Performance Dashboard")
-                data_without_total = result_df[
-                    (result_df[original_columns[0]] != 'TOTAL (Non-Zero Wells)') & 
-                    (result_df[original_columns[0]] != 'TOTAL (All Wells)')
-                ]
-                
-                fig = create_visualizations(data_without_total, original_columns, all_wells_data)
-                if fig:
-                    st.pyplot(fig)
-                else:
-                    st.info("Visualizations not available due to insufficient data")
-                
-                progress_bar.progress(100)
-                status_text.text("✅ Analysis complete!")
-                
-                # Download section
-                st.markdown("---")
-                st.header("💾 Download Reports")
-                
-                download_col1, download_col2 = st.columns(2)
-                
-                with download_col1:
-                    st.subheader("📥 Data Export")
-                    # CSV Download
-                    csv = result_df.to_csv(index=False)
-                    st.download_button(
-                        label="Download CSV Report",
-                        data=csv,
-                        file_name="production_analysis.csv",
-                        mime="text/csv",
-                        help="Download the complete data analysis as CSV"
-                    )
+                if result_df is not None and not result_df.empty:
+                    # Generate visualizations (exclude TOTAL row for visualization)
+                    data_without_total = result_df[result_df[original_columns[0]] != 'TOTAL (All Wells)']
+                    fig = create_visualizations(data_without_total, original_columns, all_wells_data)
                     
-                    # Excel Download
-                    if st.button("Generate Excel Report", type="primary", use_container_width=True):
-                        with st.spinner("Creating Excel report..."):
-                            excel_buffer = create_excel_with_visualizations(result_df, stats, fig)
-                        
-                        if excel_buffer:
-                            st.download_button(
-                                label="Download Excel Report",
-                                data=excel_buffer,
-                                file_name="production_analysis.xlsx",
-                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                help="Download comprehensive Excel report with data and visualizations"
-                            )
-                        else:
-                            st.error("Failed to create Excel report")
-                
-                with download_col2:
-                    st.subheader("📊 Presentation")
-                    # PowerPoint Download
-                    if st.button("Generate PowerPoint Report", type="primary", use_container_width=True):
-                        with st.spinner("Creating PowerPoint presentation..."):
-                            ppt_buffer = create_comprehensive_powerpoint(result_df, well_count, stats, original_columns, fig)
-                        
+                    # Generate PowerPoint automatically
+                    ppt_buffer = create_comprehensive_powerpoint(result_df, well_count, stats, original_columns, fig)
+                    
+                    # Success message
+                    st.markdown(f"""
+                    <div class="success-box">
+                    <h3>✅ Analysis Complete!</h3>
+                    <p>Successfully processed <b>{stats['Total All Wells']}</b> total wells and identified <b>{well_count}</b> wells with significant Net Diff BO values.</p>
+                    <p><b>PowerPoint report has been automatically generated and is ready for download below.</b></p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Enhanced metrics display
+                    st.markdown("---")
+                    st.header("📊 Key Performance Indicators")
+                    
+                    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+                    
+                    with kpi1:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                        <h3>Total Wells</h3>
+                        <h2>{stats['Total All Wells']}</h2>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with kpi2:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                        <h3>Wells with Changes</h3>
+                        <h2>{stats['Total Wells with Non-Zero Net Diff BO']}</h2>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with kpi3:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                        <h3>Positive Performance</h3>
+                        <h2>{stats['Positive Net Diff BO Wells']}</h2>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with kpi4:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                        <h3>Needs Attention</h3>
+                        <h2>{stats['Negative Net Diff BO Wells']}</h2>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    # Data preview (with TOTAL row included)
+                    st.markdown("---")
+                    st.header("📋 Production Data Overview")
+                    st.dataframe(result_df, use_container_width=True, height=400)
+                    
+                    # Visualizations
+                    st.markdown("---")
+                    st.header("📈 Performance Analytics")
+                    if fig:
+                        st.pyplot(fig)
+                        st.caption("Figure 1: Comprehensive production performance analysis across key metrics")
+                    else:
+                        st.info("📊 Visualizations not available due to insufficient data")
+                    
+                    # Enhanced Download section
+                    st.markdown("---")
+                    st.header("💾 Download Reports")
+                    
+                    st.markdown("""
+                    <div class="info-box">
+                    <h3>🎁 Export Your Analysis</h3>
+                    <p>Choose from multiple formats to share your insights with your team:</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    download_col1, download_col2, download_col3 = st.columns(3)
+                    
+                    with download_col1:
+                        st.subheader("📄 CSV Export")
+                        st.markdown("Simple data format for spreadsheets")
+                        # Export with TOTAL row included
+                        csv = result_df.to_csv(index=False)
+                        st.download_button(
+                            label="📥 Download CSV",
+                            data=csv,
+                            file_name="production_analysis.csv",
+                            mime="text/csv",
+                            use_container_width=True
+                        )
+                    
+                    with download_col2:
+                        st.subheader("📊 Excel Report")
+                        st.markdown("Complete analysis with charts")
+                        if st.button("🔄 Generate Excel Report", use_container_width=True):
+                            with st.spinner("Creating comprehensive Excel report..."):
+                                excel_buffer = create_excel_with_visualizations(result_df, stats, fig)
+                            
+                            if excel_buffer:
+                                st.download_button(
+                                    label="📥 Download Excel",
+                                    data=excel_buffer,
+                                    file_name="production_analysis.xlsx",
+                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                    use_container_width=True
+                                )
+                            else:
+                                st.error("❌ Failed to create Excel report")
+                    
+                    with download_col3:
+                        st.subheader("🎤 PowerPoint")
+                        st.markdown("Professional presentation")
                         if ppt_buffer:
                             st.download_button(
-                                label="Download PowerPoint",
+                                label="📥 Download PowerPoint",
                                 data=ppt_buffer,
                                 file_name="production_presentation.pptx",
                                 mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                                help="Download professional PowerPoint presentation"
+                                use_container_width=True
                             )
+                            st.success("✅ PowerPoint ready for download!")
                         else:
-                            st.error("Failed to create PowerPoint presentation")
+                            st.error("❌ Failed to create PowerPoint presentation")
                 
-            else:
-                st.error("❌ No valid data found in the uploaded file. Please check your file format and try again.")
-                
+                else:
+                    st.error("❌ No valid data found in the uploaded file. Please check your file format and try again.")
+                    
         except Exception as e:
             st.error(f"❌ Error processing file: {str(e)}")
-            st.info("💡 Tip: Make sure your Excel file has the correct format with production data in the 'Report' sheet.")
+            st.markdown("""
+            <div class="warning-box">
+            <h3>💡 Troubleshooting Tips</h3>
+            <ul>
+            <li>Ensure your Excel file has data in the 'Report' worksheet</li>
+            <li>Check that the file follows the expected format with multi-level headers</li>
+            <li>Verify that required columns are present (Field, Well Names, Net BO, Net Diff BO)</li>
+            <li>Try saving your file as .xlsx format if issues persist</li>
+            </ul>
+            </div>
+            """, unsafe_allow_html=True)
     
     else:
         # Enhanced instructions when no file is uploaded
         st.markdown("---")
-        st.header("📖 How to Use This Dashboard")
+        st.header("📖 Getting Started Guide")
         
-        col1, col2 = st.columns(2)
+        guide_col1, guide_col2 = st.columns(2)
         
-        with col1:
-            st.subheader("🎯 Step-by-Step Guide")
+        with guide_col1:
+            st.subheader("🎯 Step-by-Step Process")
             steps = [
-                "1. **Prepare your Excel file** with production data",
-                "2. **Upload the file** using the uploader above",
-                "3. **Wait for automatic analysis** - the app detects columns automatically",
-                "4. **Review the results** - data, statistics, and visualizations",
-                "5. **Download reports** - CSV, Excel, or PowerPoint formats"
+                {"step": "1", "title": "Prepare Your Data", "desc": "Ensure your Excel file has production data in the 'Report' sheet with proper headers"},
+                {"step": "2", "title": "Upload File", "desc": "Use the upload section above to select your Excel file (.xlsx, .xls, or .xlsm)"},
+                {"step": "3", "title": "Automatic Analysis", "desc": "The app will automatically detect columns and process your data"},
+                {"step": "4", "title": "Review Results", "desc": "Examine the insights, visualizations, and key metrics"},
+                {"step": "5", "title": "Export Reports", "desc": "Download your analysis in CSV, Excel, or PowerPoint format"}
             ]
             
             for step in steps:
-                st.markdown(step)
+                with st.container():
+                    st.markdown(f"**{step['step']}. {step['title']}**")
+                    st.caption(step['desc'])
+                    st.markdown("---")
         
-        with col2:
+        with guide_col2:
             st.subheader("📋 File Requirements")
             requirements = [
-                "• Excel file (.xlsx or .xls)",
-                "• Data in 'Report' worksheet",
-                "• Multi-level headers (skip first 6 rows)",
-                "• Required columns:",
-                "  - Field information",
-                "  - Running wells names", 
-                "  - Net BO production",
-                "  - Net Diff BO values"
+                "✅ **File Types**: .xlsx, .xls, or .xlsm (Macro-enabled Excel)",
+                "✅ **Worksheet**: Data must be in 'Report' sheet",
+                "✅ **Headers**: Multi-level headers (first 6 rows skipped)",
+                "✅ **Required Columns**:",
+                "   - Field information column",
+                "   - Running wells names column", 
+                "   - Net BO production values",
+                "   - Net Diff BO performance values",
+                "✅ **Data Format**: Stop processing at 'TOTAL' row"
             ]
             
             for req in requirements:
                 st.markdown(req)
+            
+            st.markdown("---")
+            st.subheader("🔍 Expected Output")
+            st.markdown("""
+            • **Data Table**: Filtered production data with TOTAL summary
+            • **Key Metrics**: Performance statistics
+            • **Visual Charts**: Three comprehensive visualizations
+            • **Export Options**: Multiple report formats
+            """)
         
         st.markdown("---")
-        st.subheader("🚀 Ready to Start?")
-        st.markdown("Upload your production Excel file above to begin your analysis!")
+        st.markdown("""
+        <div style="text-align: center; padding: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; color: white;">
+        <h2>🚀 Ready to Analyze Your Production Data?</h2>
+        <p>Upload your Excel file above to unlock powerful insights and generate professional reports!</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
