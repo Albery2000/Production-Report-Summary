@@ -361,12 +361,12 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
             axes[0].set_xticks(x_positions)
             
             # High-resolution text for well names with better spacing and bold font
-            axes[0].set_xticklabels(display_wells, rotation=45, ha='right', fontsize=20, 
+            axes[0].set_xticklabels(display_wells, rotation=45, ha='right', fontsize=14, 
                                    rotation_mode='anchor', fontweight='bold')
             
             # Increase tick label size and padding
-            axes[0].tick_params(axis='x', which='major', pad=15, labelsize=12)
-            axes[0].tick_params(axis='y', which='major', labelsize=14)
+            axes[0].tick_params(axis='x', which='major', pad=15, labelsize=20)
+            axes[0].tick_params(axis='y', which='major', labelsize=20)
             
             # Enhanced grid
             axes[0].grid(True, alpha=0.4, linestyle='-', linewidth=1.0, axis='y')
@@ -1661,5 +1661,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
