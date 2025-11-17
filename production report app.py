@@ -305,76 +305,101 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
         
         # HIGH-RESOLUTION SETTINGS FOR PRINTING
         # Create very large figure for high resolution
-        fig, axes = plt.subplots(1, 3, figsize=(32, 14))  # Increased width for better text fitting
+        fig, axes = plt.subplots(1, 3, figsize=(36, 14))  # Increased width for better text fitting
         fig.suptitle('PRODUCTION ANALYSIS DASHBOARD', fontsize=24, fontweight='bold', y=0.98)
         
         # Set high DPI for the entire figure
         fig.set_dpi(300)
         
-       # 1. Net Diff BO by Well (Non-Zero Wells - Top 15) - HIGH RESOLUTION
+        # 1. Net Diff BO by Well (INCLUDING ZERO NET BO WELLS) - HIGH RESOLUTION
         if len(net_diff_bo_data_non_zero) > 0 and len(well_names_non_zero) > 0:
+            # Create display data including all wells with non-zero Net Diff BO (regardless of Net BO)
             display_data = pd.DataFrame({
                 'well_name': well_names_non_zero,
-                'net_diff_bo': net_diff_bo_data_non_zero
-            }).head(15)
+                'net_diff_bo': net_diff_bo_data_non_zero,
+                'net_bo': net_bo_data_non_zero
+            })
+            
+            # Sort by absolute Net Diff BO to show most significant changes first
+            display_data['abs_net_diff'] = display_data['net_diff_bo'].abs()
+            display_data = display_data.sort_values('abs_net_diff', ascending=False).head(15)
             
             display_wells = display_data['well_name']
             display_net_diff = display_data['net_diff_bo']
+            display_net_bo = display_data['net_bo']
             
             # Create bars with optimal spacing for printing
             x_positions = np.arange(len(display_wells))
             bar_width = 0.7
             
+            # Color coding: green for positive, red for negative, and special marker for zero Net BO wells
+            colors = []
+            edge_colors = []
+            for diff, net_bo in zip(display_net_diff, display_net_bo):
+                if net_bo == 0:
+                    # Special color for wells with zero Net BO
+                    colors.append('#ffa500')  # Orange
+                    edge_colors.append('#cc8400')  # Darker orange
+                elif diff >= 0:
+                    colors.append('#2ecc71')  # Green
+                    edge_colors.append('#27ae60')  # Darker green
+                else:
+                    colors.append('#e74c3c')  # Red
+                    edge_colors.append('#c0392b')  # Darker red
+            
             bars = axes[0].bar(x_positions, display_net_diff, 
                               width=bar_width,
-                              color=['#2ecc71' if x >= 0 else '#e74c3c' for x in display_net_diff],
+                              color=colors,
                               alpha=0.85,
-                              edgecolor=['#27ae60' if x >= 0 else '#c0392b' for x in display_net_diff],
-                              linewidth=1.5)
+                              edgecolor=edge_colors,
+                              linewidth=2.0)  # Thicker borders for better visibility
             
-            axes[0].set_xlabel('WELLS', fontsize=16, fontweight='bold', labelpad=15)
-            axes[0].set_ylabel('NET DIFF BO', fontsize=16, fontweight='bold', labelpad=15)
-            axes[0].set_title('NET DIFF BO PERFORMANCE\n(Top 15 Wells with Changes)', 
-                             fontsize=18, fontweight='bold', pad=25)
+            axes[0].set_xlabel('WELLS', fontsize=18, fontweight='bold', labelpad=15)
+            axes[0].set_ylabel('NET DIFF BO', fontsize=18, fontweight='bold', labelpad=15)
+            axes[0].set_title('NET DIFF BO PERFORMANCE\n(Top 15 Wells by Change Magnitude)', 
+                             fontsize=20, fontweight='bold', pad=25)
             axes[0].set_xticks(x_positions)
             
-            # High-resolution text for well names with better spacing
-            axes[0].set_xticklabels(display_wells, rotation=45, ha='right', fontsize=11, 
+            # High-resolution text for well names with better spacing and bold font
+            axes[0].set_xticklabels(display_wells, rotation=45, ha='right', fontsize=14, 
                                    rotation_mode='anchor', fontweight='bold')
             
             # Increase tick label size and padding
-            axes[0].tick_params(axis='x', which='major', pad=15, labelsize=10)
-            axes[0].tick_params(axis='y', which='major', labelsize=12)
+            axes[0].tick_params(axis='x', which='major', pad=15, labelsize=12)
+            axes[0].tick_params(axis='y', which='major', labelsize=14)
             
             # Enhanced grid
-            axes[0].grid(True, alpha=0.4, linestyle='-', linewidth=0.8)
+            axes[0].grid(True, alpha=0.4, linestyle='-', linewidth=1.0, axis='y')
             
             # Adjust y limits with generous margins for printing and text placement
-            y_min = display_net_diff.min() if display_net_diff.min() < 0 else 0
-            y_max = display_net_diff.max() * 1.4 if display_net_diff.max() > 0 else display_net_diff.min() * 0.6
+            y_min = display_net_diff.min() * 1.2 if display_net_diff.min() < 0 else -1
+            y_max = display_net_diff.max() * 1.4 if display_net_diff.max() > 0 else 1
             axes[0].set_ylim([y_min, y_max])
             
             # Add prominent zero reference line
-            if y_min < 0 < y_max:
-                axes[0].axhline(y=0, color='black', linestyle='-', alpha=0.7, linewidth=2)
+            axes[0].axhline(y=0, color='black', linestyle='-', alpha=0.8, linewidth=3)
             
             # High-resolution value labels placed directly on the bars
-            for bar, value in zip(bars, display_net_diff):
+            for bar, value, net_bo in zip(bars, display_net_diff, display_net_bo):
                 height = bar.get_height()
                 
-                # Determine text color based on bar color (white for better contrast)
-                text_color = 'black'
-        
+                # Determine text color and position based on bar value and Net BO
+                if net_bo == 0:
+                    text_color = 'black'
+                    # For zero Net BO wells, add special marker in label
+                    value_str = f'{value:.1f}*'
+                else:
+                    text_color = 'black'
+                    value_str = f'{value:.1f}'
+                
                 # Position text in the middle of the bar
                 if height >= 0:
-                    # For positive bars, place text in the upper part of the bar
                     y_pos = height * 0.7  # 70% up the bar height
                     va = 'center'
                 else:
-                    # For negative bars, place text in the lower part of the bar
                     y_pos = height * 0.3  # 30% up from the bottom of negative bar
                     va = 'center'
-        
+                
                 # Ensure text is always visible - adjust position for very small bars
                 if abs(height) < (y_max - y_min) * 0.05:  # Very small bars
                     if height >= 0:
@@ -383,17 +408,10 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
                     else:
                         y_pos = height - (y_max - y_min) * 0.02  # Place slightly below
                         va = 'top'
-                    text_color = 'black'  # Use black for better visibility on small bars
-        
-                # Value formatting for printing
-                value_str = f'{value:.1f}'
-        
-                # Adjust font size based on value magnitude and bar height
-                if abs(height) < (y_max - y_min) * 0.1:  # Small values
-                    font_size = 8
-                else:  # Larger values
-                    font_size = 9
-        
+                
+                # Adjust font size and weight for better readability
+                font_size = 12 if abs(height) < (y_max - y_min) * 0.1 else 14
+                
                 # Add value label directly on the bar
                 axes[0].text(bar.get_x() + bar.get_width()/2., y_pos,
                             value_str, 
@@ -401,90 +419,134 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
                             va=va, 
                             fontsize=font_size, 
                             fontweight='bold',
-                            color=text_color)
+                            color=text_color,
+                            bbox=dict(boxstyle="round,pad=0.2", facecolor="white", 
+                                    alpha=0.9, edgecolor='gray', linewidth=1))
             
-            # Enhanced summary text for printing - moved to bottom to avoid conflict
+            # Enhanced summary text for printing
             positive_count = (display_net_diff > 0).sum()
             negative_count = (display_net_diff < 0).sum()
+            zero_net_bo_count = (display_net_bo == 0).sum()
             
             summary_text = f'POSITIVE: {positive_count} | NEGATIVE: {negative_count}'
+            if zero_net_bo_count > 0:
+                summary_text += f' | ZERO NET BO: {zero_net_bo_count}*'
+            
             axes[0].text(0.02, 0.02, summary_text, 
                         transform=axes[0].transAxes, 
-                        fontsize=12, 
+                        fontsize=14, 
                         color='navy',
                         fontweight='bold',
-                        bbox=dict(boxstyle="round,pad=0.4", facecolor="lightyellow", 
-                                alpha=0.9, edgecolor='navy', linewidth=1.0),
+                        bbox=dict(boxstyle="round,pad=0.5", facecolor="lightyellow", 
+                                alpha=0.9, edgecolor='navy', linewidth=2.0),
                         verticalalignment='bottom')
             
-            # Generous margins for printing - increased bottom margin for well names
-            axes[0].margins(x=0.12, y=0.2)
+            # Add legend for zero Net BO wells
+            if zero_net_bo_count > 0:
+                axes[0].text(0.98, 0.98, '* = Zero Net BO Well', 
+                            transform=axes[0].transAxes, 
+                            fontsize=12, 
+                            color='darkorange',
+                            fontweight='bold',
+                            bbox=dict(boxstyle="round,pad=0.4", facecolor="lightyellow", 
+                                    alpha=0.9, edgecolor='darkorange', linewidth=1.5),
+                            verticalalignment='top',
+                            horizontalalignment='right')
+            
+            # Generous margins for printing
+            axes[0].margins(x=0.15, y=0.25)
             
         else:
             axes[0].text(0.5, 0.5, 'NO NET DIFF BO DATA AVAILABLE', 
                         ha='center', va='center', 
                         transform=axes[0].transAxes,
-                        fontsize=16,
+                        fontsize=18,
                         fontweight='bold',
                         bbox=dict(boxstyle="round,pad=1.0", facecolor="lightgray", 
                                 alpha=0.8, edgecolor='black', linewidth=2))
-            axes[0].set_title('NET DIFF BO PERFORMANCE\n(Top 15 Wells with Changes)', 
-                             fontsize=18, fontweight='bold')
+            axes[0].set_title('NET DIFF BO PERFORMANCE\n(Top 15 Wells by Change Magnitude)', 
+                             fontsize=20, fontweight='bold')
         
-        # 2. Top 10 Wells with Highest W/C values (ALL WELLS) - HIGH RESOLUTION
+        # 2. Top 10 Wells with Highest W/C values (EXCLUDING ZERO NET BO WELLS) - HIGH RESOLUTION
         if has_wc_data_all and len(wc_data_all) > 0 and len(well_names_all) > 0:
-            # Get top 10 wells with highest W/C values from ALL wells
-            top_wc_wells = pd.DataFrame({
+            # Create dataframe with W/C and Net BO data
+            wc_analysis_data = pd.DataFrame({
                 'well_name': well_names_all,
-                'wc_value': wc_data_all
-            }).nlargest(10, 'wc_value')
+                'wc_value': wc_data_all,
+                'net_bo': net_bo_data_all
+            })
             
-            # High-resolution horizontal bar chart
-            bars = axes[1].barh(range(len(top_wc_wells)), top_wc_wells['wc_value'], 
-                               color='#3498db', alpha=0.85, edgecolor='#2980b9', linewidth=1.5)
-            axes[1].set_xlabel('W/C VALUE (%)', fontsize=16, fontweight='bold', labelpad=15)
-            axes[1].set_ylabel('WELLS', fontsize=16, fontweight='bold', labelpad=15)
-            axes[1].set_title('TOP 10 WELLS WITH HIGHEST W/C VALUES\n(All Wells)', 
-                             fontsize=18, fontweight='bold', pad=25)
-            axes[1].set_yticks(range(len(top_wc_wells)))
+            # FILTER OUT WELLS WITH ZERO NET BO
+            wc_analysis_data = wc_analysis_data[wc_analysis_data['net_bo'] > 0]
             
-            # High-resolution y-axis labels
-            axes[1].set_yticklabels(top_wc_wells['well_name'], fontsize=13, fontweight='bold')
-            axes[1].tick_params(axis='both', which='major', labelsize=12)
-            axes[1].grid(True, alpha=0.4, linestyle='-', linewidth=0.8)
-            
-            # Adjust x-axis limits with generous margins
-            max_wc_value = top_wc_wells['wc_value'].max()
-            axes[1].set_xlim([0, max_wc_value * 1.2])  # 20% margin
-            
-            # High-resolution value labels
-            for bar, value in zip(bars, top_wc_wells['wc_value']):
-                width = bar.get_width()
-                axes[1].text(width + max_wc_value * 0.015, bar.get_y() + bar.get_height()/2.,
-                            f'{value:.1f}%', 
-                            ha='left', va='center', 
-                            fontsize=12, fontweight='bold',
-                            bbox=dict(boxstyle="round,pad=0.3", facecolor="white", 
-                                    alpha=0.9, edgecolor='gray', linewidth=0.8))
-            
-            # Enhanced warning note for printing
-            axes[1].text(0.02, 0.98, '⚠️ HIGH W/C VALUES MAY INDICATE\nWATER PRODUCTION ISSUES', 
-                        transform=axes[1].transAxes, 
-                        fontsize=11, color='darkred', fontweight='bold',
-                        bbox=dict(boxstyle="round,pad=0.5", facecolor="lightcoral", 
-                                alpha=0.8, edgecolor='darkred', linewidth=1.5),
-                        verticalalignment='top')
+            if not wc_analysis_data.empty:
+                # Get top 10 wells with highest W/C values (excluding zero Net BO wells)
+                top_wc_wells = wc_analysis_data.nlargest(10, 'wc_value')
+                
+                # High-resolution horizontal bar chart
+                bars = axes[1].barh(range(len(top_wc_wells)), top_wc_wells['wc_value'], 
+                                   color='#3498db', alpha=0.85, edgecolor='#2980b9', linewidth=2.0)
+                axes[1].set_xlabel('W/C VALUE (%)', fontsize=18, fontweight='bold', labelpad=15)
+                axes[1].set_ylabel('WELLS', fontsize=18, fontweight='bold', labelpad=15)
+                axes[1].set_title('TOP 10 WELLS WITH HIGHEST W/C VALUES\n(Excluding Zero Net BO Wells)', 
+                                 fontsize=20, fontweight='bold', pad=25)
+                axes[1].set_yticks(range(len(top_wc_wells)))
+                
+                # High-resolution y-axis labels with bold font
+                axes[1].set_yticklabels(top_wc_wells['well_name'], fontsize=15, fontweight='bold')
+                axes[1].tick_params(axis='both', which='major', labelsize=14)
+                axes[1].grid(True, alpha=0.4, linestyle='-', linewidth=1.0, axis='x')
+                
+                # Adjust x-axis limits with generous margins
+                max_wc_value = top_wc_wells['wc_value'].max()
+                axes[1].set_xlim([0, max_wc_value * 1.25])  # 25% margin
+                
+                # High-resolution value labels with bold font
+                for bar, value in zip(bars, top_wc_wells['wc_value']):
+                    width = bar.get_width()
+                    axes[1].text(width + max_wc_value * 0.015, bar.get_y() + bar.get_height()/2.,
+                                f'{value:.1f}%', 
+                                ha='left', va='center', 
+                                fontsize=14, fontweight='bold',
+                                bbox=dict(boxstyle="round,pad=0.4", facecolor="white", 
+                                        alpha=0.95, edgecolor='gray', linewidth=1.2))
+                
+                # Enhanced warning note for printing
+                axes[1].text(0.02, 0.98, '⚠️ HIGH W/C VALUES MAY INDICATE\nWATER PRODUCTION ISSUES', 
+                            transform=axes[1].transAxes, 
+                            fontsize=13, color='darkred', fontweight='bold',
+                            bbox=dict(boxstyle="round,pad=0.6", facecolor="lightcoral", 
+                                    alpha=0.9, edgecolor='darkred', linewidth=2.0),
+                            verticalalignment='top')
+                
+                # Add note about filtering
+                axes[1].text(0.02, 0.02, '✅ Excluding wells with zero Net BO', 
+                            transform=axes[1].transAxes, 
+                            fontsize=12, color='darkgreen', fontweight='bold',
+                            bbox=dict(boxstyle="round,pad=0.4", facecolor="lightgreen", 
+                                    alpha=0.9, edgecolor='darkgreen', linewidth=1.5),
+                            verticalalignment='bottom')
+            else:
+                axes[1].text(0.5, 0.5, 'NO W/C DATA AVAILABLE\nAFTER FILTERING ZERO NET BO WELLS', 
+                            ha='center', va='center', 
+                            transform=axes[1].transAxes,
+                            fontsize=16,
+                            fontweight='bold',
+                            bbox=dict(boxstyle="round,pad=1.0", facecolor="lightgray", 
+                                    alpha=0.8, edgecolor='black', linewidth=2))
+                axes[1].set_title('TOP 10 WELLS WITH HIGHEST W/C VALUES\n(Excluding Zero Net BO Wells)', 
+                                 fontsize=20, fontweight='bold')
                         
         else:
             axes[1].text(0.5, 0.5, 'NO W/C DATA AVAILABLE', 
                         ha='center', va='center', 
                         transform=axes[1].transAxes,
-                        fontsize=16,
+                        fontsize=18,
                         fontweight='bold',
                         bbox=dict(boxstyle="round,pad=1.0", facecolor="lightgray", 
                                 alpha=0.8, edgecolor='black', linewidth=2))
-            axes[1].set_title('TOP 10 WELLS WITH HIGHEST W/C VALUES\n(All Wells)', 
-                             fontsize=18, fontweight='bold')
+            axes[1].set_title('TOP 10 WELLS WITH HIGHEST W/C VALUES\n(Excluding Zero Net BO Wells)', 
+                             fontsize=20, fontweight='bold')
         
         # 3. Top 10 Wells with Highest Net BO (ALL WELLS) - HIGH RESOLUTION
         if len(net_bo_data_all) > 0 and len(well_names_all) > 0:
@@ -496,45 +558,45 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
             
             # High-resolution horizontal bar chart
             bars = axes[2].barh(range(len(top_wells_all)), top_wells_all['net_bo'], 
-                               color='#f39c12', alpha=0.85, edgecolor='#e67e22', linewidth=1.5)
-            axes[2].set_xlabel('NET BO', fontsize=16, fontweight='bold', labelpad=15)
-            axes[2].set_ylabel('WELLS', fontsize=16, fontweight='bold', labelpad=15)
+                               color='#f39c12', alpha=0.85, edgecolor='#e67e22', linewidth=2.0)
+            axes[2].set_xlabel('NET BO', fontsize=18, fontweight='bold', labelpad=15)
+            axes[2].set_ylabel('WELLS', fontsize=18, fontweight='bold', labelpad=15)
             axes[2].set_title('TOP 10 HIGHEST PRODUCING WELLS\n(All Wells)', 
-                             fontsize=18, fontweight='bold', pad=25)
+                             fontsize=20, fontweight='bold', pad=25)
             axes[2].set_yticks(range(len(top_wells_all)))
             
-            # High-resolution y-axis labels
-            axes[2].set_yticklabels(top_wells_all['well_name'], fontsize=13, fontweight='bold')
-            axes[2].tick_params(axis='both', which='major', labelsize=12)
-            axes[2].grid(True, alpha=0.4, linestyle='-', linewidth=0.8)
+            # High-resolution y-axis labels with bold font
+            axes[2].set_yticklabels(top_wells_all['well_name'], fontsize=15, fontweight='bold')
+            axes[2].tick_params(axis='both', which='major', labelsize=14)
+            axes[2].grid(True, alpha=0.4, linestyle='-', linewidth=1.0, axis='x')
             
             # Adjust x-axis limits with generous margins
             max_net_bo = top_wells_all['net_bo'].max()
-            axes[2].set_xlim([0, max_net_bo * 1.2])  # 20% margin
+            axes[2].set_xlim([0, max_net_bo * 1.25])  # 25% margin
             
-            # High-resolution value labels
+            # High-resolution value labels with bold font
             for bar, value in zip(bars, top_wells_all['net_bo']):
                 width = bar.get_width()
                 axes[2].text(width + max_net_bo * 0.015, bar.get_y() + bar.get_height()/2.,
                             f'{value:.0f}', 
                             ha='left', va='center', 
-                            fontsize=12, fontweight='bold',
-                            bbox=dict(boxstyle="round,pad=0.3", facecolor="white", 
-                                    alpha=0.9, edgecolor='gray', linewidth=0.8))
+                            fontsize=14, fontweight='bold',
+                            bbox=dict(boxstyle="round,pad=0.4", facecolor="white", 
+                                    alpha=0.95, edgecolor='gray', linewidth=1.2))
         else:
             axes[2].text(0.5, 0.5, 'NO PRODUCTION DATA AVAILABLE', 
                         ha='center', va='center', 
                         transform=axes[2].transAxes,
-                        fontsize=16,
+                        fontsize=18,
                         fontweight='bold',
                         bbox=dict(boxstyle="round,pad=1.0", facecolor="lightgray", 
                                 alpha=0.8, edgecolor='black', linewidth=2))
             axes[2].set_title('TOP 10 HIGHEST PRODUCING WELLS\n(All Wells)', 
-                             fontsize=18, fontweight='bold')
+                             fontsize=20, fontweight='bold')
         
         # HIGH-RESOLUTION LAYOUT SETTINGS
         # Adjust layout with generous padding for printing
-        plt.tight_layout(pad=6.0)
+        plt.tight_layout(pad=8.0)
         
         return fig
         
