@@ -410,7 +410,7 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
                         va = 'top'
                 
                 # Adjust font size and weight for better readability
-                font_size = 14 if abs(height) < (y_max - y_min) * 0.1 else 16
+                font_size = 16 if abs(height) < (y_max - y_min) * 0.1 else 18
                 
                 # Add value label directly on the bar
                 axes[0].text(bar.get_x() + bar.get_width()/2., y_pos,
@@ -1661,6 +1661,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
