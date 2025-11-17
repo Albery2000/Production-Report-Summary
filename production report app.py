@@ -487,14 +487,14 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
                 bars = axes[1].barh(range(len(top_wc_wells)), top_wc_wells['wc_value'], 
                                    color='#3498db', alpha=0.85, edgecolor='#2980b9', linewidth=2.0)
                 axes[1].set_xlabel('W/C VALUE (%)', fontsize=20, fontweight='bold', labelpad=15)
-                axes[1].set_ylabel('WELLS', fontsize=22, fontweight='bold', labelpad=15)
+                axes[1].set_ylabel('WELLS', fontsize=24, fontweight='bold', labelpad=15)
                 axes[1].set_title('TOP 10 WELLS WITH HIGHEST W/C VALUES\n(Excluding Zero Net BO Wells)', 
                                  fontsize=20, fontweight='bold', pad=25)
                 axes[1].set_yticks(range(len(top_wc_wells)))
                 
                 # High-resolution y-axis labels with bold font
-                axes[1].set_yticklabels(top_wc_wells['well_name'], fontsize=30, fontweight='bold')
-                axes[1].tick_params(axis='both', which='major', labelsize=16)
+                axes[1].set_yticklabels(top_wc_wells['well_name'], fontsize=32, fontweight='bold')
+                axes[1].tick_params(axis='both', which='major', labelsize=18)
                 axes[1].grid(True, alpha=0.4, linestyle='-', linewidth=1.0, axis='x')
                 
                 # Adjust x-axis limits with generous margins
@@ -507,7 +507,7 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
                     axes[1].text(width + max_wc_value * 0.015, bar.get_y() + bar.get_height()/2.,
                                 f'{value:.1f}%', 
                                 ha='left', va='center', 
-                                fontsize=18, fontweight='bold',
+                                fontsize=20, fontweight='bold',
                                 bbox=dict(boxstyle="round,pad=0.4", facecolor="white", 
                                         alpha=0.95, edgecolor='gray', linewidth=1.2))     
                 
@@ -551,15 +551,15 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
             # High-resolution horizontal bar chart
             bars = axes[2].barh(range(len(top_wells_all)), top_wells_all['net_bo'], 
                                color='#f39c12', alpha=0.85, edgecolor='#e67e22', linewidth=2.0)
-            axes[2].set_xlabel('NET BO', fontsize=18, fontweight='bold', labelpad=15)
-            axes[2].set_ylabel('WELLS', fontsize=18, fontweight='bold', labelpad=15)
+            axes[2].set_xlabel('NET BO', fontsize=20, fontweight='bold', labelpad=15)
+            axes[2].set_ylabel('WELLS', fontsize=26, fontweight='bold', labelpad=15)
             axes[2].set_title('TOP 10 HIGHEST PRODUCING WELLS\n(All Wells)', 
                              fontsize=20, fontweight='bold', pad=25)
             axes[2].set_yticks(range(len(top_wells_all)))
             
             # High-resolution y-axis labels with bold font
-            axes[2].set_yticklabels(top_wells_all['well_name'], fontsize=15, fontweight='bold')
-            axes[2].tick_params(axis='both', which='major', labelsize=14)
+            axes[2].set_yticklabels(top_wells_all['well_name'], fontsize=26, fontweight='bold')
+            axes[2].tick_params(axis='both', which='major', labelsize=16)
             axes[2].grid(True, alpha=0.4, linestyle='-', linewidth=1.0, axis='x')
             
             # Adjust x-axis limits with generous margins
@@ -1653,6 +1653,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
