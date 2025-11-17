@@ -487,13 +487,13 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
                 bars = axes[1].barh(range(len(top_wc_wells)), top_wc_wells['wc_value'], 
                                    color='#3498db', alpha=0.85, edgecolor='#2980b9', linewidth=2.0)
                 axes[1].set_xlabel('W/C VALUE (%)', fontsize=20, fontweight='bold', labelpad=15)
-                axes[1].set_ylabel('WELLS', fontsize=26, fontweight='bold', labelpad=15)
+                axes[1].set_ylabel('WELLS', fontsize=22, fontweight='bold', labelpad=15)
                 axes[1].set_title('TOP 10 WELLS WITH HIGHEST W/C VALUES\n(Excluding Zero Net BO Wells)', 
                                  fontsize=20, fontweight='bold', pad=25)
                 axes[1].set_yticks(range(len(top_wc_wells)))
                 
                 # High-resolution y-axis labels with bold font
-                axes[1].set_yticklabels(top_wc_wells['well_name'], fontsize=26, fontweight='bold')
+                axes[1].set_yticklabels(top_wc_wells['well_name'], fontsize=30, fontweight='bold')
                 axes[1].tick_params(axis='both', which='major', labelsize=16)
                 axes[1].grid(True, alpha=0.4, linestyle='-', linewidth=1.0, axis='x')
                 
@@ -1653,6 +1653,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
