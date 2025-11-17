@@ -494,7 +494,7 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
                 
                 # High-resolution y-axis labels with bold font
                 axes[1].set_yticklabels(top_wc_wells['well_name'], fontsize=30, fontweight='bold')
-                axes[1].tick_params(axis='both', which='major', labelsize=20)
+                axes[1].tick_params(axis='both', which='major', labelsize=22)
                 axes[1].grid(True, alpha=0.4, linestyle='-', linewidth=1.0, axis='x')
                 
                 # Adjust x-axis limits with generous margins
@@ -1653,6 +1653,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
