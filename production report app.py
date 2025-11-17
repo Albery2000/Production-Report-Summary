@@ -445,7 +445,7 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
             if zero_net_bo_count > 0:
                 axes[0].text(0.98, 0.98, '* = Zero Net BO Well', 
                             transform=axes[0].transAxes, 
-                            fontsize=12, 
+                            fontsize=16, 
                             color='darkorange',
                             fontweight='bold',
                             bbox=dict(boxstyle="round,pad=0.4", facecolor="lightyellow", 
@@ -1661,3 +1661,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
