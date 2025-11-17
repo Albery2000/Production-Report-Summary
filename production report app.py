@@ -361,7 +361,7 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
             axes[0].set_xticks(x_positions)
             
             # High-resolution text for well names with better spacing and bold font
-            axes[0].set_xticklabels(display_wells, rotation=45, ha='right', fontsize=14, 
+            axes[0].set_xticklabels(display_wells, rotation=45, ha='right', fontsize=20, 
                                    rotation_mode='anchor', fontweight='bold')
             
             # Increase tick label size and padding
@@ -1661,6 +1661,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
