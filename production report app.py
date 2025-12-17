@@ -359,7 +359,7 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
         
         # HIGH-RESOLUTION SETTINGS FOR PRINTING
         # Create very large figure for high resolution
-        fig, axes = plt.subplots(1, 3, figsize=(36, 14))  # Increased width for better text fitting
+        fig, axes = plt.subplots(1, 3, figsize=(36, 16))  # Increased width for better text fitting
         fig.suptitle('PRODUCTION ANALYSIS DASHBOARD', fontsize=24, fontweight='bold', y=0.98)
         
         # Set high DPI for the entire figure
@@ -535,19 +535,19 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
             
             if not wc_analysis_data.empty:
                 # Get top 10 wells with highest W/C values (excluding zero Net BO wells)
-                top_wc_wells = wc_analysis_data.nlargest(10, 'wc_value')
+                top_wc_wells = wc_analysis_data.nlargest(15, 'wc_value')
                 
                 # High-resolution horizontal bar chart
                 bars = axes[1].barh(range(len(top_wc_wells)), top_wc_wells['wc_value'], 
                                    color='#3498db', alpha=0.85, edgecolor='#2980b9', linewidth=2.0)
                 axes[1].set_xlabel('W/C VALUE (%)', fontsize=20, fontweight='bold', labelpad=15)
                 axes[1].set_ylabel('WELLS', fontsize=28, fontweight='bold', labelpad=15)
-                axes[1].set_title('TOP 10 WELLS WITH HIGHEST W/C VALUES\n(Excluding Zero Net BO Wells)', 
+                axes[1].set_title('TOP 15 WELLS WITH HIGHEST W/C VALUES\n(Excluding Zero Net BO Wells)', 
                                  fontsize=20, fontweight='bold', pad=25)
                 axes[1].set_yticks(range(len(top_wc_wells)))
                 
                 # High-resolution y-axis labels with bold font
-                axes[1].set_yticklabels(top_wc_wells['well_name'], fontsize=30, fontweight='bold')
+                axes[1].set_yticklabels(top_wc_wells['well_name'], fontsize=26, fontweight='bold')
                 axes[1].tick_params(axis='both', which='major', labelsize=20)
                 axes[1].grid(True, alpha=0.4, linestyle='-', linewidth=1.0, axis='x')
                 
@@ -580,7 +580,7 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
                             fontweight='bold',
                             bbox=dict(boxstyle="round,pad=1.0", facecolor="lightgray", 
                                 alpha=0.8, edgecolor='black', linewidth=2))
-                axes[1].set_title('TOP 10 WELLS WITH HIGHEST W/C VALUES\n(Excluding Zero Net BO Wells)', 
+                axes[1].set_title('TOP 15 WELLS WITH HIGHEST W/C VALUES\n(Excluding Zero Net BO Wells)', 
                                  fontsize=20, fontweight='bold')
                         
         else:
@@ -591,28 +591,28 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
                         fontweight='bold',
                         bbox=dict(boxstyle="round,pad=1.0", facecolor="lightgray", 
                                 alpha=0.8, edgecolor='black', linewidth=2))
-            axes[1].set_title('TOP 10 WELLS WITH HIGHEST W/C VALUES\n(Excluding Zero Net BO Wells)', 
+            axes[1].set_title('TOP 15 WELLS WITH HIGHEST W/C VALUES\n(Excluding Zero Net BO Wells)', 
                              fontsize=20, fontweight='bold')
         
-        # 3. Top 10 Wells with Highest Net BO (ALL WELLS) - HIGH RESOLUTION
+        # 3. Top 15 Wells with Highest Net BO (ALL WELLS) - HIGH RESOLUTION
         if len(net_bo_data_all) > 0 and len(well_names_all) > 0:
             # Get top 10 wells with highest Net BO from ALL wells
             top_wells_all = pd.DataFrame({
                 'well_name': well_names_all,
                 'net_bo': net_bo_data_all
-            }).nlargest(10, 'net_bo')
+            }).nlargest(15, 'net_bo')
             
             # High-resolution horizontal bar chart
             bars = axes[2].barh(range(len(top_wells_all)), top_wells_all['net_bo'], 
                                color='#f39c12', alpha=0.85, edgecolor='#e67e22', linewidth=2.0)
             axes[2].set_xlabel('NET BO', fontsize=20, fontweight='bold', labelpad=15)
             axes[2].set_ylabel('WELLS', fontsize=28, fontweight='bold', labelpad=15)
-            axes[2].set_title('TOP 10 HIGHEST PRODUCING WELLS\n(All Wells)', 
+            axes[2].set_title('TOP 15 HIGHEST PRODUCING WELLS\n(All Wells)', 
                              fontsize=18, fontweight='bold', pad=25)
             axes[2].set_yticks(range(len(top_wells_all)))
             
             # High-resolution y-axis labels with bold font
-            axes[2].set_yticklabels(top_wells_all['well_name'], fontsize=30, fontweight='bold')
+            axes[2].set_yticklabels(top_wells_all['well_name'], fontsize=26, fontweight='bold')
             axes[2].tick_params(axis='both', which='major', labelsize=22)
             axes[2].grid(True, alpha=0.4, linestyle='-', linewidth=1.0, axis='x')
             
@@ -637,7 +637,7 @@ def create_visualizations(data_without_total, original_columns, all_wells_data):
                         fontweight='bold',
                         bbox=dict(boxstyle="round,pad=1.0", facecolor="lightgray", 
                                 alpha=0.8, edgecolor='black', linewidth=2))
-            axes[2].set_title('TOP 10 HIGHEST PRODUCING WELLS\n(All Wells)', 
+            axes[2].set_title('TOP 15 HIGHEST PRODUCING WELLS\n(All Wells)', 
                              fontsize=16, fontweight='bold')
         
         # HIGH-RESOLUTION LAYOUT SETTINGS
@@ -1781,3 +1781,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
